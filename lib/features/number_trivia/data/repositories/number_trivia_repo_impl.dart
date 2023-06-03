@@ -18,18 +18,31 @@ class NumberTriviaRepoImpl implements NumberTriviaRepo {
   final NetworkInfo networkInfo;
   @override
   Future<Either<Failure, NumberTrivia>> getConcreteNumberTrivia(int number) async {
-    networkInfo.connected;
-    try {
-      final response = await remoteDataSource.getConcreteNumberTrivia(number);
-      localDataSource.cacheNumberTrivia(response);
-      return Right(response);
-    } on ServerException {
-      return Left(ServerFailure());
-    }
+    return getNumberTrivia(random: false, number: number);
   }
 
   @override
-  Future<Either<Failure, NumberTrivia>> getRandomNumberTrivia() {
-    throw UnimplementedError();
+  Future<Either<Failure, NumberTrivia>> getRandomNumberTrivia() async {
+    return getNumberTrivia(random: true);
+  }
+
+  Future<Either<Failure, NumberTrivia>> getNumberTrivia({required bool random, int? number}) async {
+    final bool connected = await networkInfo.connected;
+    if (connected) {
+      try {
+        final response = random ? await remoteDataSource.getRandomNumberTrivia() : await remoteDataSource.getConcreteNumberTrivia(number!);
+        localDataSource.cacheNumberTrivia(response);
+        return Right(response);
+      } on ServerException {
+        return Left(ServerFailure());
+      }
+    } else {
+      try {
+        final localTrivia = await localDataSource.getLastNumberTrivia();
+        return Right(localTrivia);
+      } on CacheExecption {
+        return Left(CacheFailure());
+      }
+    }
   }
 }
