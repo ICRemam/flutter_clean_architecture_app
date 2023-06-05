@@ -41,9 +41,12 @@ void main() {
     test('check if the device is online', () async {
       //arrange
       when(() => mockNetworkInfo.connected).thenAnswer((_) async => true);
+      when(() => mockRemoteDataSource.getConcreteNumberTrivia(any())).thenAnswer((_) async => tNumberTriviaModel);
+
       //act
       await repo.getConcreteNumberTrivia(tNumber);
       //assert
+
       verify((() => mockNetworkInfo.connected));
     });
 
@@ -119,6 +122,7 @@ void main() {
     test('check if the device is online', () async {
       //arrange
       when(() => mockNetworkInfo.connected).thenAnswer((_) async => true);
+      // when(() => mockRemoteDataSource.getRandomNumberTrivia()).thenAnswer((realInvocation) async => tNumberTrivia);
       //act
       await repo.getRandomNumberTrivia();
       //assert
